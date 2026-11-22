@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Inspection Report Builder</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#0f5e73" id="themeMeta">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Reports">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-180.png">
+<style>
+:root{--bg:#eef1f4;--panel:#fff;--text:#18222d;--muted:#5a6673;--line:#d5dbe2;--accent:#0f5e73;--on-accent:#fff;--hi:#c0392b;--md:#c77700;--lo:#2f7d4f;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#10161c;--panel:#192129;--text:#e6ebf0;--muted:#9aa7b4;--line:#2e3a45;--accent:#5fc0d8;--on-accent:#06222b;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#10161c;--panel:#192129;--text:#e6ebf0;--muted:#9aa7b4;--line:#2e3a45;--accent:#5fc0d8;--on-accent:#06222b;color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.layout{display:grid;grid-template-columns:minmax(300px,420px) 1fr;gap:20px;max-width:1280px;margin:0 auto;padding:20px}
+@media (max-width:860px){.layout{grid-template-columns:1fr;padding:12px}}
+#editor{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:18px;align-self:start}
+h1{font-size:20px;margin:0 0 2px}
+.sub{color:var(--muted);margin:0 0 16px;font-size:13px}
+h2{font-size:15px;margin:20px 0 8px;padding-top:14px;border-top:1px solid var(--line)}
+label{display:block;font-size:13px;color:var(--muted);margin:10px 0 3px}
+input,select,textarea{width:100%;font:inherit;color:var(--text);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:8px 10px}
+textarea{min-height:70px;resize:vertical}
+input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+button{font:inherit;cursor:pointer;border-radius:6px;border:1px solid var(--line);background:var(--panel);color:var(--text);padding:8px 12px}
+button.primary{background:var(--accent);color:var(--on-accent);border-color:var(--accent);font-weight:600}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.hint{font-size:12px;color:var(--muted);margin-top:8px}
+.fl{list-style:none;padding:0;margin:10px 0 0}
+.fl li{display:flex;gap:8px;align-items:center;border:1px solid var(--line);border-radius:6px;padding:6px 8px;margin-bottom:6px;font-size:13px}
+.fl li span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fl button{padding:2px 8px}
+.dot{width:10px;height:10px;border-radius:50%;flex:none}
+.High{--c:var(--hi)}.Medium{--c:var(--md)}.Low{--c:var(--lo)}
+.dot{background:var(--c)}
+.paper{background:#fff;color:#18222d;border:1px solid var(--line);border-radius:4px;padding:40px 44px;max-width:860px;width:100%;margin:0 auto;font:14px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+@media (max-width:600px){.paper{padding:22px 16px}}
+.paper .top{border-bottom:3px solid var(--accent);padding-bottom:14px;margin-bottom:18px}
+.paper .co{font-weight:600;color:var(--accent)}
+.paper h1{font:700 30px/1.15 Georgia,"Times New Roman",serif;margin:4px 0 0}
+.meta{display:grid;grid-template-columns:repeat(2,1fr);gap:6px 24px;margin:0 0 18px}
+.meta div{border-bottom:1px solid #e3e7ec;padding:4px 0;font-size:13px}
+.meta b{display:block;font-weight:600;color:#5a6673;font-size:12px}
+.paper h3{font:700 18px Georgia,serif;margin:22px 0 8px}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+.chip{border:1.5px solid var(--c);color:var(--c);border-radius:999px;padding:2px 12px;font-weight:600;font-size:13px}
+.find{break-inside:avoid;page-break-inside:avoid;border-left:4px solid var(--c);padding:2px 0 2px 14px;margin:0 0 20px}
+.find h4{margin:0;font-size:16px}
+.find .tag{color:var(--c);font-weight:600;font-size:13px}
+.find img{display:block;max-width:100%;max-height:420px;border-radius:3px;margin:8px 0}
+.find p{margin:4px 0;white-space:pre-wrap}
+.empty{color:#6b7682;font-style:italic}
+.fee{width:100%;border-collapse:collapse;font-size:14px}.fee td{padding:6px 0;border-bottom:1px solid #e3e7ec}.fee td:last-child{text-align:right;font-variant-numeric:tabular-nums}.fee .tot td{font-weight:700;border-bottom:0;border-top:2px solid #18222d;font-size:16px}
+.fl li b{font-weight:600;font-variant-numeric:tabular-nums}
+[hidden]{display:none!important}
+.tabs{display:flex;gap:6px;max-width:1280px;margin:0 auto;padding:14px 20px 0}
+.tabs button[aria-selected="true"]{background:var(--accent);color:var(--on-accent);border-color:var(--accent);font-weight:600}
+.logview{max-width:860px;margin:0 auto;padding:20px}
+.logview .fl li{padding:10px}
+.panel{border:1px solid var(--accent);border-radius:8px;padding:12px 14px;margin-top:14px}
+.settings-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.settings-grid>div{min-width:0}.logo-preview{max-width:150px;max-height:70px;object-fit:contain;display:block;margin-top:8px}.brand-logo{max-width:115px;max-height:58px;object-fit:contain;vertical-align:middle;margin-right:12px}.disc{margin-top:26px;border-top:1px solid #e3e7ec;padding-top:10px;font-size:12px;color:#5a6673}
+@media print{
+:root{padding:0}body{background:#fff}
+#editor,.tabs,.logview{display:none}.layout{display:block;padding:0;max-width:none}
+.paper{border:0;padding:0;max-width:none;border-radius:0}
+}
+</style>
+</head>
+<body>
+<nav class="tabs" role="tablist"><button id="tb" role="tab" aria-selected="true">Report builder</button><button id="tl" role="tab" aria-selected="false">Sent to clients</button></nav>
+<div class="layout" id="builder">
+<section id="editor">
+<h1 id="appTitle">Inspection report builder</h1>
+<p class="sub">Fill in the job, add findings with photos, and the report updates on the right.</p>
+<h2 style="border:0;padding:0;margin-top:14px">Company branding & profile</h2>
+<label for="companyName">Company name</label><input id="companyName" placeholder="Your business name">
+<div class="settings-grid"><div><label for="companyAddress">Company address</label><input id="companyAddress" placeholder="Business address"></div><div><label for="companyPhone">Phone</label><input id="companyPhone" placeholder="Phone number"></div><div><label for="companyLicense">License / certificate no.</label><input id="companyLicense" placeholder="License number"></div><div><label for="brandColor">Brand color</label><input id="brandColor" type="color" value="#0f5e73"></div></div>
+<label for="companyLogo">Company logo</label><input id="companyLogo" type="file" accept="image/*"><img id="logoPreview" class="logo-preview" alt="Company logo preview" hidden>
+<div class="actions"><button id="saveProfile" class="primary">Save company profile</button></div>
+<p class="hint">These settings stay in this browser and automatically appear on new reports. A separately branded copy can be configured for each customer.</p>
+<h2>Saved clients</h2>
+<label for="clientPick">Choose a saved client</label><select id="clientPick"><option value="">Select a client…</option></select>
+<div class="actions"><button id="saveClient">Save current client</button><button id="deleteClient">Delete selected client</button></div>
+<h2>Report templates</h2>
+<label for="templatePick">Load a starter checklist</label><select id="templatePick"><option value="">Choose a template…</option></select>
+<div class="actions"><button id="saveTemplate">Save current checklist as template</button><button id="deleteTemplate">Delete selected template</button></div>
+<label for="templateName">New template name</label><input id="templateName" placeholder="e.g. Commercial roof inspection">
+<div class="actions"><button id="exportBackup">Export full backup</button><button id="importBackup">Import backup</button><input id="backupFile" type="file" accept="application/json,.json" hidden></div>
+<p class="hint">Backup includes reports, photos, sent log, company profile, clients, and templates. Store the exported JSON somewhere safe.</p>
+
+<h2 style="border:0;padding:0">Job details</h2>
+<label for="co">Your company</label><input id="co" placeholder="Skyline Aerial Inspections">
+<label for="client">Client</label><input id="client" list="clientOptions" placeholder="Client name"><datalist id="clientOptions"></datalist>
+<label for="addr">Property address</label><input id="addr" placeholder="123 Main St">
+<div class="row">
+<div><label for="date">Inspection date</label><input id="date" type="date"></div>
+<div><label for="type">Inspection type</label><select id="type"><option>Roof</option><option>Solar panels</option><option>Cell tower</option><option>Construction progress</option><option>Other</option></select></div>
+</div>
+<div class="row">
+<div><label for="pilot">Pilot</label><input id="pilot"></div>
+<div><label for="cert">Part 107 certificate no.</label><input id="cert"></div>
+</div>
+<div class="row">
+<div><label for="drone">Aircraft</label><input id="drone" placeholder="Model"></div>
+<div><label for="wx">Conditions</label><input id="wx" placeholder="Clear, 8 mph wind"></div>
+</div>
+<label for="summary">Overall summary</label><textarea id="summary" placeholder="Short overview of what you found and what you recommend."></textarea>
+
+<h2>Pricing and delivery</h2>
+<label for="invoiceNo">Invoice number</label><input id="invoiceNo" placeholder="INV-1001">
+<div class="row"><div><label for="dueDate">Payment due date</label><input id="dueDate" type="date"></div><div><label for="paymentTerms">Payment terms</label><select id="paymentTerms"><option>Due on receipt</option><option>Net 7</option><option>Net 15</option><option>Net 30</option><option>Net 45</option><option>Net 60</option><option>Custom</option></select></div></div>
+<label for="price">Inspection fee ($)</label><input id="price" type="number" min="0" step="0.01" placeholder="0.00">
+<label for="xl">Other fees (travel, rush, thermal scan)</label>
+<div class="row"><input id="xl" placeholder="Fee name"><input id="xa" type="number" min="0" step="0.01" placeholder="Amount"></div>
+<div class="actions"><button id="addfee">Add fee</button></div>
+<ul class="fl" id="feelist"></ul>
+<label for="sent">Date sent to client</label><input id="sent" type="date">
+<label for="email">Client email</label><input id="email" type="email" placeholder="client@example.com">
+<label for="pay">Payment link (placeholder until your payment account is set up)</label><input id="pay" value="https://pay.example.com/your-payment-link">
+
+<h2>Add a finding</h2>
+<label for="photo">Photo</label><input id="photo" type="file" accept="image/*">
+<label for="ft">Title</label><input id="ft" placeholder="Cracked shingles near ridge">
+<div class="row">
+<div><label for="fa">Area</label><input id="fa" placeholder="North slope"></div>
+<div><label for="fs">Severity</label><select id="fs"><option>High</option><option selected>Medium</option><option>Low</option></select></div>
+</div>
+<label for="fn">Notes</label><textarea id="fn" placeholder="What you saw and what to do about it."></textarea>
+<div class="actions"><button class="primary" id="add">Add finding</button></div>
+<ul class="fl" id="list"></ul>
+
+<div class="actions">
+<button id="pdf">Download PDF</button>
+<button class="primary" id="send">Send to client</button>
+<button id="new">New report</button>
+<button id="clear">Clear findings</button>
+</div>
+<div class="panel" id="sendp" hidden>
+<h2 style="border:0;margin-top:0;padding-top:0">Send to client</h2>
+<label for="sv">How are you sending it?</label>
+<select id="sv"><option>Email</option><option>Text message</option><option>WhatsApp</option><option>Other</option></select>
+<label for="sc" id="scl">Email address</label><input id="sc" placeholder="client@example.com">
+<label for="sm">Message</label><textarea id="sm" style="min-height:130px"></textarea>
+<div class="actions">
+<button id="s1">1. Download PDF</button>
+<button id="s2">2. Open draft</button>
+<button class="primary" id="s3">3. I sent it</button>
+<button id="s4">Cancel</button>
+</div>
+<p class="hint">Browsers can’t attach files or send messages for you. Download the PDF, attach it in the app that opens, send it, then confirm so it goes into your history.</p>
+</div>
+<p class="hint" id="msg">Sent reports and their photos are saved in this browser only and are never uploaded.</p>
+<h2>Past inspections</h2>
+<ul class="fl" id="hist"></ul>
+</section>
+
+<section class="paper" id="report" aria-live="polite"></section>
+</div>
+<section class="logview" id="logview" hidden>
+<h1>Sent to clients</h1>
+<p class="sub">Every report you send to a client appears here once you confirm it with Send to client.</p>
+<ul class="fl" id="loglist"></ul>
+</section>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+var $=function(i){return document.getElementById(i)};
+var esc=function(s){return String(s||'').replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})};
+var IDS=['co','client','addr','date','type','pilot','cert','drone','wx','summary','price','sent','email','pay','invoiceNo','dueDate','paymentTerms'];
+var M={},F=[],X=[],cur=null,pending='',armed=false,PAY='https://pay.example.com/your-payment-link',companyLogo='';
+var DEFAULT_TEMPLATES={'Roof inspection':['Roof surface condition','Flashing and penetrations','Gutters and drainage','Ridge, valleys, and edges','Visible damage or debris'],'Solar panel inspection':['Panel condition','Visible cracks or damage','Mounting and racking','Wiring / conduit visible from aerial view','Obstructions and shading'],'Construction progress':['Site overview','Foundation / structural progress','Roof and exterior progress','Materials and equipment','Schedule or safety observations']};
+$('date').value=new Date().toISOString().slice(0,10);
+
+function fmtDate(d){if(!d)return'';var x=new Date(d+'T00:00');return isNaN(x)?d:x.toLocaleDateString(undefined,{year:'numeric',month:'long',day:'numeric'})}
+function shrink(file){return new Promise(function(res){var r=new FileReader();r.onload=function(){var i=new Image();i.onload=function(){var k=Math.min(1,1000/i.width),c=document.createElement('canvas');c.width=Math.round(i.width*k);c.height=Math.round(i.height*k);c.getContext('2d').drawImage(i,0,0,c.width,c.height);res(c.toDataURL('image/jpeg',0.75))};i.onerror=function(){res('')};i.src=r.result};r.onerror=function(){res('')};r.readAsDataURL(file)})}
+
+function render(){
+  IDS.forEach(function(id){M[id]=$(id).value});
+  var cnt={High:0,Medium:0,Low:0};F.forEach(function(f){cnt[f.sev]++});
+  var meta=[['Client',M.client],['Property',M.addr],['Date',fmtDate(M.date)],['Inspection type',M.type],['Pilot',M.pilot],['Part 107 certificate',M.cert],['Aircraft',M.drone],['Conditions',M.wx],['Sent to client',fmtDate(M.sent)]]
+    .filter(function(p){return p[1]}).map(function(p){return'<div><b>'+p[0]+'</b>'+esc(p[1])+'</div>'}).join('');
+  var prof=getProfile();var h='<div class="top">'+(companyLogo?'<img class="brand-logo" alt="Company logo" src="'+companyLogo+'">':'')+'<div class="co">'+esc(M.co||prof.name||'Your company name')+'</div><div>'+esc(prof.address||'')+(prof.phone?' · '+esc(prof.phone):'')+(prof.license?' · License: '+esc(prof.license):'')+'</div><h1>Aerial '+esc((M.type||'').toLowerCase())+' inspection report</h1></div>';
+  h+='<div class="meta">'+meta+'</div>';
+  if(M.invoiceNo||M.dueDate||M.paymentTerms)h+='<h3>Invoice details</h3><div class="meta">'+[['Invoice number',M.invoiceNo],['Due date',fmtDate(M.dueDate)],['Payment terms',M.paymentTerms]].filter(function(p){return p[1]}).map(function(p){return '<div><b>'+p[0]+'</b>'+esc(p[1])+'</div>'}).join('')+'</div>';
+  h+='<h3>Summary</h3><div class="chips">'+['High','Medium','Low'].map(function(s){return'<span class="chip '+s+'">'+cnt[s]+' '+s.toLowerCase()+'</span>'}).join('')+'</div>';
+  h+=M.summary?'<p style="white-space:pre-wrap;margin:0">'+esc(M.summary)+'</p>':'<p class="empty">Add an overall summary on the left.</p>';
+  h+='<h3>Findings</h3>';
+  if(!F.length)h+='<p class="empty">No findings yet. Add a photo, a title, and a severity to create the first one.</p>';
+  F.forEach(function(f,n){
+    h+='<div class="find '+f.sev+'"><h4>'+(n+1)+'. '+esc(f.title)+'</h4><div class="tag">'+f.sev+' priority'+(f.area?' · '+esc(f.area):'')+'</div>'+(f.img?'<img alt="'+esc(f.title)+'" src="'+f.img+'">':'')+(f.notes?'<p>'+esc(f.notes)+'</p>':'')+'</div>';
+  });
+  if(M.price||X.length){var fe=[['Inspection fee',+M.price||0]].concat(X.map(function(x){return[x.l,x.a]}));h+='<h3>Pricing</h3><table class="fee">'+fe.map(function(f){return'<tr><td>'+esc(f[0])+'</td><td>'+money(f[1])+'</td></tr>'}).join('')+'<tr class="tot"><td>Total due</td><td>'+money(total())+'</td></tr></table>'}
+  if(/^https?:\/\//.test(M.pay||'')){h+='<h3>Pay online</h3><p><a href="'+esc(M.pay)+'" target="_blank" rel="noopener" style="color:#0f5e73;word-break:break-all">'+esc(M.pay)+'</a></p>'}
+  h+='<div class="disc">This report is based on a visual aerial survey and is not a structural engineering assessment. Findings should be confirmed by a qualified professional before repairs are made.</div>';
+  $('report').innerHTML=h;
+  $('list').innerHTML=F.map(function(f,n){return'<li class="'+f.sev+'"><i class="dot"></i><span>'+(n+1)+'. '+esc(f.title)+'</span><button data-a="up" data-n="'+n+'" aria-label="Move up">↑</button><button data-a="del" data-n="'+n+'" aria-label="Remove">✕</button></li>'}).join('');
+}
+
+var baseRender=render;
+render=function(){baseRender();$('feelist').innerHTML=X.map(function(x,n){return'<li><span>'+esc(x.l)+'</span><b>'+money(x.a)+'</b><button data-n="'+n+'" aria-label="Remove fee">✕</button></li>'}).join('')};
+IDS.forEach(function(id){$(id).addEventListener('input',render)});
+$('photo').addEventListener('change',function(e){var f=e.target.files[0];pending='';if(f)shrink(f).then(function(d){pending=d})});
+$('add').addEventListener('click',function(){
+  var t=$('ft').value.trim();
+  if(!t){$('ft').focus();$('ft').placeholder='Enter a title for the finding';return}
+  F.push({title:t,area:$('fa').value.trim(),sev:$('fs').value,notes:$('fn').value.trim(),img:pending});
+  ['ft','fa','fn','photo'].forEach(function(i){$(i).value=''});pending='';render();
+});
+$('list').addEventListener('click',function(e){
+  var b=e.target.closest('button');if(!b)return;var n=+b.dataset.n;
+  if(b.dataset.a==='del')F.splice(n,1);
+  else if(n>0){var x=F[n];F[n]=F[n-1];F[n-1]=x}
+  render();
+});
+function msg(t){$('msg').textContent=t}
+function money(n){return n.toLocaleString('en-US',{style:'currency',currency:'USD'})}
+function total(){return (+M.price||0)+X.reduce(function(s,x){return s+x.a},0)}
+$('addfee').addEventListener('click',function(){var l=$('xl').value.trim(),a=parseFloat($('xa').value);if(!l||isNaN(a)){msg('Enter a fee name and an amount.');return}X.push({l:l,a:a});$('xl').value='';$('xa').value='';render()});
+$('feelist').addEventListener('click',function(e){var b=e.target.closest('button');if(b){X.splice(+b.dataset.n,1);render()}});
+
+var DB=null;
+function idb(){return new Promise(function(res,rej){if(DB)return res(DB);try{var q=indexedDB.open('inspections',2);q.onupgradeneeded=function(){['r','e'].forEach(function(n){if(!q.result.objectStoreNames.contains(n))q.result.createObjectStore(n,{keyPath:'id'})})};q.onsuccess=function(){DB=q.result;res(DB)};q.onerror=function(){rej(q.error)}}catch(e){rej(e)}})}
+function tx(mode,fn,st){st=st||'r';return idb().then(function(d){return new Promise(function(res,rej){var t=d.transaction(st,mode),r=fn(t.objectStore(st));t.oncomplete=function(){res(r&&r.result)};t.onerror=function(){rej(t.error)}})})}
+function loadHist(){tx('readonly',function(s){return s.getAll()}).then(function(rs){rs=(rs||[]).sort(function(a,b){return b.saved-a.saved});$('hist').innerHTML=rs.length?rs.map(function(r){return'<li><span>'+esc(r.m.addr||'No address')+' · '+esc(r.m.client||'No client')+' · '+esc(fmtDate(r.m.date))+' · '+money(r.tot||0)+' · '+(r.m.sent?'Sent '+esc(fmtDate(r.m.sent))+(r.via?' via '+esc(r.via):''):'Not sent')+'</span><button data-a="open" data-id="'+r.id+'">Open</button><button data-a="hdel" data-id="'+r.id+'" aria-label="Delete">✕</button></li>'}).join(''):'<li><span>No saved inspections yet.</span></li>'}).catch(function(){$('hist').innerHTML='<li><span>History isn’t available in this browser.</span></li>'})}
+
+$('hist').addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;var id=b.dataset.id;if(b.dataset.a==='hdel'){if(cur===id)cur=null;tx('readwrite',function(s){return s.delete(id)}).then(loadHist)}else tx('readonly',function(s){return s.get(id)}).then(function(r){if(!r)return;IDS.forEach(function(i){$(i).value=r.m[i]||''});F=r.f||[];X=r.x||[];cur=id;render();msg('Opened. Save again to keep any changes.')})});
+$('new').addEventListener('click',function(){['client','addr','wx','summary','price','sent','email','invoiceNo','dueDate'].forEach(function(i){$(i).value=''});$('pay').value=PAY;$('date').value=new Date().toISOString().slice(0,10);F=[];X=[];cur=null;render();msg('Started a new report.')});
+
+function buildPdf(){
+  var d=new window.jspdf.jsPDF({unit:'pt',format:'letter'}),W=d.internal.pageSize.getWidth(),H=d.internal.pageSize.getHeight(),mx=48,w=W-2*mx,y=mx,INK=[24,34,45],SEV={High:[192,57,43],Medium:[199,119,0],Low:[47,125,79]};
+  function need(h){if(y+h>H-mx){d.addPage();y=mx}}
+  function t(s,sz,b,c,f){d.setFont(f||'helvetica',b?'bold':'normal');d.setFontSize(sz);d.setTextColor.apply(d,c||INK);d.splitTextToSize(String(s),w).forEach(function(l){need(sz*1.4);d.text(l,mx,y+sz);y+=sz*1.4})}
+  function hd(s){y+=10;t(s,14,1,null,'times');y+=2}
+  function row(a,b,bold){need(20);d.setFont('helvetica',bold?'bold':'normal');d.setFontSize(bold?12:10);d.setTextColor.apply(d,INK);d.text(a,mx,y+12);d.text(b,W-mx,y+12,{align:'right'});y+=20}
+  var cnt={High:0,Medium:0,Low:0};F.forEach(function(f){cnt[f.sev]++});
+  var prof=getProfile();t(M.co||prof.name||'Your company name',11,1,hexRgb($('brandColor').value));
+  if(prof.address)t(prof.address,9);if(prof.phone)t(prof.phone+'  '+(prof.license?'License: '+prof.license:''),9);
+  if(companyLogo){try{var fmt=companyLogo.indexOf('image/png')>=0?'PNG':'JPEG';d.addImage(companyLogo,fmt,W-mx-90,y-8,90,42);y+=42}catch(e){}}
+  t('Aerial '+(M.type||'').toLowerCase()+' inspection report',22,1,null,'times');
+  y+=4;var bc=hexRgb($('brandColor').value);d.setDrawColor(bc[0],bc[1],bc[2]);d.setLineWidth(2);d.line(mx,y,W-mx,y);y+=14;
+  [['Client',M.client],['Property',M.addr],['Date',fmtDate(M.date)],['Pilot',M.pilot],['Part 107 certificate',M.cert],['Aircraft',M.drone],['Conditions',M.wx],['Sent to client',fmtDate(M.sent)],['Invoice number',M.invoiceNo],['Due date',fmtDate(M.dueDate)],['Payment terms',M.paymentTerms]].forEach(function(p){if(p[1])t(p[0]+': '+p[1],10)});
+  hd('Summary');t(cnt.High+' high, '+cnt.Medium+' medium, '+cnt.Low+' low priority findings',10,1);if(M.summary)t(M.summary,10);
+  hd('Findings');if(!F.length)t('No findings recorded.',10);
+  F.forEach(function(f,n){var ih=0,iw=0;if(f.img){var p=d.getImageProperties(f.img),k=Math.min(w/p.width,300/p.height);iw=p.width*k;ih=p.height*k}
+    need(60+ih);t((n+1)+'. '+f.title,12,1);t(f.sev+' priority'+(f.area?' - '+f.area:''),10,1,SEV[f.sev]);
+    if(f.img){y+=4;d.addImage(f.img,'JPEG',mx,y,iw,ih);y+=ih+6}
+    if(f.notes)t(f.notes,10);y+=10});
+  if(M.price||X.length){hd('Pricing');row('Inspection fee',money(+M.price||0));X.forEach(function(x){row(x.l,money(x.a))});d.setDrawColor(24,34,45);d.setLineWidth(1);d.line(mx,y,W-mx,y);y+=4;row('Total due',money(total()),1)}
+  if(/^https?:\/\//.test(M.pay||'')){hd('Pay online');need(20);d.setFont('helvetica','normal');d.setFontSize(10);d.setTextColor(15,94,115);d.textWithLink(M.pay,mx,y+10,{url:M.pay});y+=20}
+  y+=12;t('This report is based on a visual aerial survey and is not a structural engineering assessment. Findings should be confirmed by a qualified professional before repairs are made.',8,0,[90,102,115]);
+  return d;
+}
+$('pdf').addEventListener('click',function(){
+  render();var blob;try{blob=buildPdf().output('blob')}catch(e){msg('Could not build the PDF: '+e.message);return}
+  var name=((M.addr||'inspection').replace(/[^A-Za-z0-9]+/g,'-').replace(/^-|-$/g,'')||'inspection')+'-report.pdf';
+  var url=URL.createObjectURL(blob),a=document.createElement('a');
+  a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();
+  setTimeout(function(){URL.revokeObjectURL(url)},10000);msg('PDF downloaded. Check your Downloads or Files app.');
+});
+
+function show(b){$('builder').hidden=!b;$('logview').hidden=b;$('tb').setAttribute('aria-selected',b);$('tl').setAttribute('aria-selected',!b);if(!b)loadLog()}
+$('tb').addEventListener('click',function(){show(true)});
+$('tl').addEventListener('click',function(){show(false)});
+function loadLog(){tx('readonly',function(s){return s.getAll()},'e').then(function(rs){rs=(rs||[]).sort(function(a,b){return b.ts-a.ts});$('loglist').innerHTML=rs.length?rs.map(function(r){return'<li><span>'+esc(fmtDate(r.at))+' · '+esc((r.via?r.via+': ':'')+(r.to||'No recipient'))+' · '+esc(r.addr||'No address')+' · '+money(r.tot||0)+'</span><button data-id="'+r.id+'" aria-label="Delete log entry">✕</button></li>'}).join(''):'<li><span>No emails logged yet.</span></li>'}).catch(function(){$('loglist').innerHTML='<li><span>The email log isn’t available in this browser.</span></li>'})}
+$('loglist').addEventListener('click',function(e){var b=e.target.closest('button');if(b)tx('readwrite',function(s){return s.delete(b.dataset.id)},'e').then(loadLog)});
+function setVia(){var v=$('sv').value;$('scl').textContent=v==='Email'?'Email address':v==='Other'?'Contact detail (optional)':'Phone number (with country code)';$('sc').placeholder=v==='Email'?'client@example.com':v==='Other'?'Portal, handle, or note':'+1 555 123 4567';if(v==='Email'&&!$('sc').value)$('sc').value=M.email||''}
+function draft(){return 'Hi '+(M.client||'there')+',\n\nHere is the '+(M.type||'').toLowerCase()+' inspection report for '+(M.addr||'your property')+'.'+(M.invoiceNo?'\nInvoice: '+M.invoiceNo:'')+(M.dueDate?'\nDue date: '+fmtDate(M.dueDate):'')+(M.paymentTerms?'\nPayment terms: '+M.paymentTerms:'')+(total()?'\nTotal due: '+money(total()):'')+(/^https?:\/\//.test(M.pay||'')?'\nPay online: '+M.pay:'')+'\n\nThank you,\n'+(M.pilot||M.co||'')}
+$('sv').addEventListener('change',function(){$('sc').value='';setVia()});
+$('send').addEventListener('click',function(){render();$('sendp').hidden=false;setVia();$('sm').value=draft();$('sendp').scrollIntoView({block:'nearest'})});
+$('s1').addEventListener('click',function(){$('pdf').click()});
+$('s4').addEventListener('click',function(){$('sendp').hidden=true});
+$('s2').addEventListener('click',function(){
+  var c=$('sc').value.trim(),m=$('sm').value,v=$('sv').value,u='';
+  if(!c&&v!=='Other'){msg('Enter the contact first.');$('sc').focus();return}
+  if(v==='Email')u='mailto:'+c+'?subject='+encodeURIComponent('Inspection report - '+(M.addr||''))+'&body='+encodeURIComponent(m);
+  else if(v==='Text message')u='sms:'+c.replace(/[^\d+]/g,'')+'?&body='+encodeURIComponent(m);
+  else if(v==='WhatsApp')u='https://wa.me/'+c.replace(/\D/g,'')+'?text='+encodeURIComponent(m);
+  if(!u){msg('Copy the message above and send it however you like, then click I sent it.');return}
+  var a=document.createElement('a');a.href=u;a.target='_blank';a.rel='noopener';document.body.appendChild(a);a.click();a.remove();
+  msg('If nothing opened, copy the message above and send it yourself. Then click I sent it.');
+});
+$('s3').addEventListener('click',function(){
+  var c=$('sc').value.trim(),v=$('sv').value;
+  if(!c&&v!=='Other'){msg('Enter who you sent it to first.');$('sc').focus();return}
+  render();if(!M.sent){$('sent').value=new Date().toISOString().slice(0,10);render()}
+  if(!cur)cur='r'+Date.now();
+  var e={id:'e'+Date.now(),ts:Date.now(),at:M.sent,to:c,via:v,addr:M.addr,client:M.client,invoiceNo:M.invoiceNo,tot:total()};
+  Promise.all([tx('readwrite',function(s){return s.put(e)},'e'),tx('readwrite',function(s){return s.put({id:cur,saved:Date.now(),m:JSON.parse(JSON.stringify(M)),f:F,x:X,tot:total(),via:v,to:c})})]).then(function(){$('sendp').hidden=true;msg('Sent by '+v.toLowerCase()+' on '+fmtDate(M.sent)+'. Added to your history.');loadHist();loadLog()}).catch(function(){msg('Could not save to history. Your browser may block storage here.')});
+});
+
+// White-label company profile, client directory, templates, and portable backups.
+function getProfile(){try{return JSON.parse(localStorage.getItem('irb_company')||'{}')}catch(e){return {}}}
+function hexRgb(hex){var h=(hex||'#0f5e73').replace('#','');if(!/^[0-9a-f]{6}$/i.test(h))h='0f5e73';return [parseInt(h.slice(0,2),16),parseInt(h.slice(2,4),16),parseInt(h.slice(4,6),16)]}
+function applyBrand(){var c=$('brandColor').value||'#0f5e73';document.documentElement.style.setProperty('--accent',c);document.querySelectorAll('.paper .top').forEach(function(el){el.style.borderColor=c});$('themeMeta').content=c;document.querySelector('meta[name="theme-color"]').content=c}
+function storeProfile(){var p={name:$('companyName').value.trim(),address:$('companyAddress').value.trim(),phone:$('companyPhone').value.trim(),license:$('companyLicense').value.trim(),color:$('brandColor').value,logo:companyLogo};localStorage.setItem('irb_company',JSON.stringify(p));document.title=p.name?p.name+' Reports':'Inspection Report Builder';$('appTitle').textContent=p.name?p.name+' Report Builder':'Inspection report builder';$('co').value=p.name;$('cert').value=$('cert').value||p.license;applyBrand();render();msg('Company profile saved on this device.')}
+function loadProfile(){var p=getProfile();$('companyName').value=p.name||'';$('companyAddress').value=p.address||'';$('companyPhone').value=p.phone||'';$('companyLicense').value=p.license||'';$('brandColor').value=p.color||'#0f5e73';companyLogo=p.logo||'';if(companyLogo){$('logoPreview').src=companyLogo;$('logoPreview').hidden=false}if(p.name){document.title=p.name+' Reports';$('appTitle').textContent=p.name+' Report Builder'}if(p.name&&!$('co').value)$('co').value=p.name;if(p.license&&!$('cert').value)$('cert').value=p.license;applyBrand()}
+$('saveProfile').addEventListener('click',storeProfile);$('brandColor').addEventListener('input',applyBrand);
+$('companyLogo').addEventListener('change',function(e){var f=e.target.files[0];if(!f)return;shrink(f).then(function(data){companyLogo=data;if(data){$('logoPreview').src=data;$('logoPreview').hidden=false;storeProfile()}})});
+function clients(){try{return JSON.parse(localStorage.getItem('irb_clients')||'[]')}catch(e){return []}}
+function renderClients(){var a=clients();$('clientPick').innerHTML='<option value="">Select a client…</option>'+a.map(function(c,i){return '<option value="'+i+'">'+esc(c.name)+'</option>'}).join('');$('clientOptions').innerHTML=a.map(function(c){return '<option value="'+esc(c.name)+'"></option>'}).join('')}
+$('saveClient').addEventListener('click',function(){var name=$('client').value.trim();if(!name){msg('Enter a client name first.');return}var a=clients(),found=a.findIndex(function(c){return c.name.toLowerCase()===name.toLowerCase()}),c={name:name,address:$('addr').value.trim(),email:$('email').value.trim()};if(found>=0)a[found]=c;else a.push(c);localStorage.setItem('irb_clients',JSON.stringify(a));renderClients();msg('Client saved to this device.')});
+$('clientPick').addEventListener('change',function(){var c=clients()[+$('clientPick').value];if(c){$('client').value=c.name;$('addr').value=c.address||'';$('email').value=c.email||'';render()}});
+$('deleteClient').addEventListener('click',function(){var i=$('clientPick').value;if(i===''){msg('Choose a saved client to delete.');return}var a=clients();a.splice(+i,1);localStorage.setItem('irb_clients',JSON.stringify(a));renderClients();msg('Saved client deleted.')});
+function templates(){try{return JSON.parse(localStorage.getItem('irb_templates')||'null')||DEFAULT_TEMPLATES}catch(e){return DEFAULT_TEMPLATES}}
+function renderTemplates(){var t=templates();$('templatePick').innerHTML='<option value="">Choose a template…</option>'+Object.keys(t).map(function(k){return '<option>'+esc(k)+'</option>'}).join('')}
+$('templatePick').addEventListener('change',function(){var k=this.value;if(!k)return;var t=templates()[k]||[];F=t.map(function(title){return {title:title,area:'',sev:'Low',notes:'',img:''}});render();msg('Template loaded. Adjust titles and severity as needed.')});
+$('saveTemplate').addEventListener('click',function(){var name=$('templateName').value.trim();if(!name||!F.length){msg('Enter a template name and add at least one finding first.');return}var t=templates();t[name]=F.map(function(f){return f.title});localStorage.setItem('irb_templates',JSON.stringify(t));renderTemplates();$('templatePick').value=name;msg('Inspection template saved.')});
+$('deleteTemplate').addEventListener('click',function(){var k=$('templatePick').value;if(!k){msg('Choose a template to delete.');return}var t=templates();if(DEFAULT_TEMPLATES[k]){msg('Built-in starter templates cannot be deleted.');return}delete t[k];localStorage.setItem('irb_templates',JSON.stringify(t));renderTemplates();msg('Template deleted.')});
+function allStore(st){return tx('readonly',function(s){return s.getAll()},st)}
+$('exportBackup').addEventListener('click',function(){Promise.all([allStore('r'),allStore('e')]).then(function(data){var backup={format:'inspection-report-builder-backup',version:1,exportedAt:new Date().toISOString(),reports:data[0],sentLog:data[1],company:getProfile(),clients:clients(),templates:templates()};var blob=new Blob([JSON.stringify(backup)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='inspection-builder-backup-'+new Date().toISOString().slice(0,10)+'.json';a.click();URL.revokeObjectURL(url);msg('Backup exported. Keep this file somewhere safe.')}).catch(function(){msg('Could not export backup from this browser.')})});
+$('importBackup').addEventListener('click',function(){$('backupFile').click()});
+$('backupFile').addEventListener('change',function(e){var f=e.target.files[0];if(!f)return;var reader=new FileReader();reader.onload=function(){try{var b=JSON.parse(reader.result);if(b.format!=='inspection-report-builder-backup'||!Array.isArray(b.reports)||!Array.isArray(b.sentLog))throw new Error('This does not look like a valid app backup.');if(!confirm('Import this backup? Existing reports and sent-log entries with matching IDs will be replaced.'))return;Promise.all([idb(),Promise.resolve(b)]).then(function(v){var db=v[0],data=v[1],t=db.transaction(['r','e'],'readwrite'),rs=t.objectStore('r'),es=t.objectStore('e');(data.reports||[]).forEach(function(x){rs.put(x)});(data.sentLog||[]).forEach(function(x){es.put(x)});t.oncomplete=function(){if(data.company)localStorage.setItem('irb_company',JSON.stringify(data.company));if(data.clients)localStorage.setItem('irb_clients',JSON.stringify(data.clients));if(data.templates)localStorage.setItem('irb_templates',JSON.stringify(data.templates));loadProfile();renderClients();renderTemplates();loadHist();loadLog();msg('Backup imported successfully.')};t.onerror=function(){msg('Import failed while writing browser storage.')}})}catch(err){msg('Could not read backup: '+err.message)}};reader.readAsText(f);e.target.value=''});
+loadProfile();renderClients();renderTemplates();
+
+loadHist();loadLog();
+$('clear').addEventListener('click',function(){
+  if(!armed){armed=true;this.textContent='Click again to clear';var b=this;setTimeout(function(){armed=false;b.textContent='Clear findings'},3000);return}
+  armed=false;F=[];this.textContent='Clear findings';render();
+});
+render();
+if('serviceWorker' in navigator&&/^https?:/.test(location.protocol))navigator.serviceWorker.register('sw.js').catch(function(){});
+</script>
+</body>
+</html>
